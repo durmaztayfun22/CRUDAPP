@@ -1,0 +1,169 @@
+const fileId = fileId + 1
+      formData.append(`image${fileId}`, file);
+const dbURI = 'mongodb+srv://durmaztayfun178:tayfun1234@cluster0.z4whmzc.mongodb.net/?retryWrites=true&w=majority';
+
+mongoose.connect = async(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then((result) => {
+    try {
+      const url = process.env.MONGO;
+      await mongoose.connect(url, {
+
+      })
+    } catch (error) {
+      
+    }
+    console.log('Veritabanına bağlanıldı');
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+
+
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import './App.css';
+
+function App() {
+  const [data, setData] = useState([]);
+  const [file, setFile] = useState(null);
+  const [name, setName] = useState('');
+  const [weight, setWeight] = useState('');
+  const [stature, setStature] = useState('');
+  const [goal, setGoal] = useState('');
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/veri'); // Axios GET request
+      const veri = response.data;
+      console.log(veri);
+      setData(veri);
+    } catch (error) {
+        console.error('Hata:', error);
+    }
+  }
+  
+
+  useEffect(() => {
+    fetchData();
+  }, []); // Bu etki bağımlılığı sadece bileşen yüklendiğinde çalışır
+
+  const handleAddItem = async () => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('name', name);
+      formData.append('weight', weight);
+      formData.append('stature', stature);
+      formData.append('goal', goal);
+
+      const response = await axios.post('http://localhost:8080/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      console.log(response);
+
+      if (response.status === 201) {
+        setFile(null);
+        setName('');
+        setWeight('');
+        setStature('');
+        setGoal('');
+        fetchData(); // Yeni öğe ekledikten sonra verileri yeniden getir
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDelete = async (itemId) => {
+    const endpoint = `http://localhost:8080/api/veri/${itemId}`;
+
+    try {
+      const response = await axios.delete(endpoint);
+
+      if (response.status === 200) {
+        fetchData(); // Öğeyi sildikten sonra verileri yeniden getir
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  return (
+    <div className='App'>
+      <h1>CRUD APP</h1>
+      <form>
+        <input type="file" accept='image/*' filename={file} onChange={e => setFile(e.target.files[0])} />
+        <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder='Lütfen Futbolcu Adı Yazın' />
+        <input type="text" value={weight} onChange={e => setWeight(e.target.value)} placeholder='Lütfen Futbolcu Kilosunu Yazın' />
+        <input type="text" value={stature} onChange={e => setStature(e.target.value)} placeholder='Lütfen Futbolcu Boyunu Yazın' />
+        <input type="text" value={goal} onChange={e => setGoal(e.target.value)} placeholder='Lütfen Futbolcunun Attığı Gol Sayısı Yazın' />
+        <button type='submit' onClick={handleAddItem}>Gönder</button>
+      </form>
+
+      <br />
+      <br />
+      <br />
+      <br />
+      <ul>
+          {data.map((item) => (
+            <li key={item._id}>
+              <div className="item-container">
+              {item._id && <img src={`C:/Users/durma/OneDrive/Masaüstü/CRUDAPP/backend/uploads/${item._id}.jfif`} alt="Resim" />}
+              {!item._id && <p>Resim bulunamadı.</p>}
+                <div>
+                  <p>{item.name}</p>
+                  <p>Weight: {item.weight}</p>
+                  <p>Stature: {item.stature}</p>
+                  <p>Goal: {item.goal}</p>
+                </div>
+                <button onClick={() => handleDelete(item._id)}>SİL</button>
+              </div>
+            </li>
+          ))}
+      </ul>
+    </div>
+  )
+}
+
+export default App;
+// {item._id && <img src={`http://localhost:8080/uploads/${item._id}.jfif`} alt="Resim" />}
+// {item._id && <img src={`C:/Users/durma/OneDrive/Masaüstü/CRUDAPP/backend/uploads/${item._id}.jfif`} alt="Resim" />}
+// aws parola Tayfun_1234
+
+
+{Array.isArray(item.image) && item.image.length > 0 ? (
+            item.image.map((image, index) => (
+              <a
+                key={index}
+                href={`${SERVER_URL}/uploads/${image.filename}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={`${SERVER_URL}/uploads/${image.filename}`}
+                  alt={`Resim ${index + 1}`}
+                  className='image'
+                />
+              </a>
+            ))
+          ) : (
+            Array.isArray(item.image) ? (
+              <p>Resim bulunamadı.</p>
+            ) : (
+              <a
+                href={`${SERVER_URL}/uploads/${item.image.filename}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={`${SERVER_URL}/uploads/${item.image.filename}`}
+                  alt="Resim"
+                  className='image'
+                />
+              </a>
+            )
+          )}
